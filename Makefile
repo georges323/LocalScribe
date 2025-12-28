@@ -1,9 +1,9 @@
 .PHONY: build run
 
 build:
-	uv run ruff check --show-fixes --fix .
-	uv run ruff format .
-	uv run mypy .
+	uv run ruff check --show-fixes --fix src/.
+	uv run ruff format src/.
+	uv run mypy src/.
 
 run: build
-	uv run main.py
+	uv run src/main.py
