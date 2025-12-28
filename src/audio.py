@@ -4,7 +4,9 @@ from pydantic import AnyHttpUrl
 import yt_dlp
 
 
-def download_yt_video(url: AnyHttpUrl) -> None:
+# GTODO: make wav an environment variable for outtmpl and extension
+# Also look into creating FFmpegConverAudioPP
+def download_yt_video(url: AnyHttpUrl) -> Path:
     ydl_opts = {
         "format": "bestaudio/best",
         "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "wav"}],
@@ -15,17 +17,18 @@ def download_yt_video(url: AnyHttpUrl) -> None:
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url.encoded_string()])
+        info_dict = ydl.extract_info(url.encoded_string(), download=True)
 
-        temporary_file_path = Path("./bin/audio.tmp.wav")
-
-        convert_to_wav(temporary_file_path)
-
-        temporary_file_path.unlink()
+        return Path(ydl.prepare_filename(info_dict)).with_suffix(".wav")
 
 
-def convert_to_wav(src_path: Path) -> None:
-    print(f"Converting: {src_path} -> wav with 16 kHz Sample Rate")
+def convert_to_wav(src_path: Path, out_path: Path) -> None:
+    if not src_path.exists():
+        raise Exception(
+            f"ERROR: Failed to convert to wav, source path {src_path} doesnt exit"
+        )
+
+    print(f"Converting {src_path} -> {out_path} with 16 kHz Sample Rate and Mono")
 
     process_cmd = [
         "ffmpeg",
@@ -39,7 +42,7 @@ def convert_to_wav(src_path: Path) -> None:
         "16000",
         "-ac",
         "1",
-        "bin/audio.wav",
+        str(out_path),
     ]
 
     result = subprocess.run(
