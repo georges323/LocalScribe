@@ -16,3 +16,6 @@ InputSource = Union[YoutubeUrl, FilePath]
 
 class CLIConfig(BaseModel):
     input_src: InputSource
+    output_src: FilePath
+    verbose: bool
+    model: str

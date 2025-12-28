@@ -1,17 +1,31 @@
 import argparse
 from pathlib import Path
 import sys
-from pydantic import AnyHttpUrl, ValidationError
+from pydantic import ValidationError
 from yt_dlp.utils import DownloadError
 
-from audio import convert_to_wav, download_yt_video
+from audio import prepare_audio_file_for_whisper
 from config import CLIConfig
-from utils import check_dependencies
+from transcriber import transcribe
+from utils import check_dependencies, write_to_file
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input_src")
+    parser.add_argument(
+        "--input_src",
+        type=str,
+        help="Youtube Link or absolute path of video/audio file of any type",
+    )
+    parser.add_argument(
+        "--output_src",
+        type=str,
+        help="File path to where the transcription should be printed",
+    )
+    parser.add_argument("--model", type=str, help="Model size for Open AI's Whisper")
+    parser.add_argument(
+        "--verbose", type=bool, default=False, help="Get more indepth logs"
+    )
 
     args = vars(parser.parse_args())
 
@@ -20,23 +34,17 @@ def main() -> None:
     # GTODO: Good candidate for env variable
     pre_whisper_audio_path = Path("bin/audio.wav")
 
-    match config.input_src:
-        case AnyHttpUrl() as url:
-            print(f"🌐 Treating as YouTube: {url}")
-            yt_download = download_yt_video(url)
-            convert_to_wav(yt_download, pre_whisper_audio_path)
-
-            yt_download.unlink()
-        case Path() as path:
-            print(f"📁 Treating as Local File: {path}")
-            convert_to_wav(path, pre_whisper_audio_path)
-
-    if not pre_whisper_audio_path.exists():
-        raise Exception(
-            f"Pre whisper audio path does not exist: {pre_whisper_audio_path}"
-        )
+    prepare_audio_file_for_whisper(config.input_src, pre_whisper_audio_path)
 
     print(f"Path of the wav file to feed to whisper: {pre_whisper_audio_path}")
+
+    transcription = transcribe(pre_whisper_audio_path, config.model, config.verbose)
+
+    write_to_file(config.output_src, transcription)
+
+    pre_whisper_audio_path.unlink()
+
+    sys.exit(1)
 
 
 if __name__ == "__main__":
