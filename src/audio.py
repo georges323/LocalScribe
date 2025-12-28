@@ -8,7 +8,7 @@ def download_yt_video(url: AnyHttpUrl) -> None:
     ydl_opts = {
         "format": "bestaudio/best",
         "postprocessors": [{"key": "FFmpegExtractAudio", "preferredcodec": "wav"}],
-        "outtmpl": "bin/audio.%(ext)s",  # Try Path(./bin/audio.wav)
+        "outtmpl": "bin/audio.tmp.%(ext)s",  # Try Path(./bin/audio.wav)
         "noplaylist": True,
         "quiet": True,
         "no_warnings": True,
@@ -17,11 +17,15 @@ def download_yt_video(url: AnyHttpUrl) -> None:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url.encoded_string()])
 
-        convert_to_wav(Path("./bin/audio.wav"))
+        temporary_file_path = Path("./bin/audio.tmp.wav")
+
+        convert_to_wav(temporary_file_path)
+
+        temporary_file_path.unlink()
 
 
 def convert_to_wav(src_path: Path) -> None:
-    print(f"Converting: {src_path} -> wav")
+    print(f"Converting: {src_path} -> wav with 16 kHz Sample Rate")
 
     process_cmd = [
         "ffmpeg",
