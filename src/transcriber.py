@@ -2,13 +2,15 @@ from pathlib import Path
 import torch
 import whisper
 
+
 def transcribe(audio_path: Path, model_name="base", verbose=False) -> str:
     if torch.backends.mps.is_available():
         device = "mps"
     else:
         device = "cpu"
 
-    print(f"Using '{model_name}' model")
+    if verbose:
+        print(f"Using '{model_name}' model")
     model = whisper.load_model(model_name, device)
 
     print("Transcribing...")

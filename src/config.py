@@ -1,6 +1,6 @@
 from typing import Annotated, Union
 
-from pydantic import AfterValidator, BaseModel, FilePath, AnyHttpUrl
+from pydantic import AfterValidator, BaseModel, DirectoryPath, FilePath, AnyHttpUrl
 
 
 def validate_youtube_link(url: AnyHttpUrl) -> AnyHttpUrl:
@@ -9,13 +9,11 @@ def validate_youtube_link(url: AnyHttpUrl) -> AnyHttpUrl:
 
     return url
 
-
 YoutubeUrl = Annotated[AnyHttpUrl, AfterValidator(validate_youtube_link)]
 InputSource = Union[YoutubeUrl, FilePath]
 
-
 class CLIConfig(BaseModel):
     input_src: InputSource
-    output_src: FilePath
-    verbose: bool
+    output_src_dir: DirectoryPath
+    verbose: bool = False
     model: str

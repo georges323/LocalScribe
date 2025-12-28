@@ -9,6 +9,8 @@ from config import CLIConfig
 from transcriber import transcribe
 from utils import check_dependencies, write_to_file
 
+pre_whisper_audio_path = Path("bin/audio.wav")
+
 
 def main() -> None:
     parser = argparse.ArgumentParser()
@@ -18,29 +20,25 @@ def main() -> None:
         help="Youtube Link or absolute path of video/audio file of any type",
     )
     parser.add_argument(
-        "--output_src",
+        "--output_src_dir",
         type=str,
         help="File path to where the transcription should be printed",
     )
     parser.add_argument("--model", type=str, help="Model size for Open AI's Whisper")
-    parser.add_argument(
-        "--verbose", type=bool, default=False, help="Get more indepth logs"
-    )
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
     args = vars(parser.parse_args())
 
     config = CLIConfig.model_validate(args)
 
-    # GTODO: Good candidate for env variable
-    pre_whisper_audio_path = Path("bin/audio.wav")
-
     prepare_audio_file_for_whisper(config.input_src, pre_whisper_audio_path)
 
-    print(f"Path of the wav file to feed to whisper: {pre_whisper_audio_path}")
+    if config.verbose:
+        print(f"Path of the wav file to feed to whisper: {pre_whisper_audio_path}")
 
     transcription = transcribe(pre_whisper_audio_path, config.model, config.verbose)
 
-    write_to_file(config.output_src, transcription)
+    write_to_file(config.output_src_dir, transcription)
 
     pre_whisper_audio_path.unlink()
 

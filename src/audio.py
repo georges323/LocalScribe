@@ -5,9 +5,6 @@ import yt_dlp
 
 from config import InputSource
 
-
-# GTODO: make wav an environment variable for outtmpl and extension
-# Also look into creating FFmpegConverAudioPP
 def download_yt_video(url: AnyHttpUrl) -> Path:
     ydl_opts = {
         "format": "bestaudio/best",
@@ -24,13 +21,14 @@ def download_yt_video(url: AnyHttpUrl) -> Path:
         return Path(ydl.prepare_filename(info_dict)).with_suffix(".wav")
 
 
-def convert_to_wav(src_path: Path, out_path: Path) -> None:
+def convert_to_wav(src_path: Path, out_path: Path, verbose=False) -> None:
     if not src_path.exists():
         raise Exception(
             f"ERROR: Failed to convert to wav, source path {src_path} doesnt exit"
         )
 
-    print(f"Converting {src_path} -> {out_path} with 16 kHz Sample Rate and Mono")
+    if verbose:
+        print(f"Converting {src_path} -> {out_path} with 16 kHz Sample Rate and Mono")
 
     process_cmd = [
         "ffmpeg",
