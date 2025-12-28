@@ -21,8 +21,6 @@ scoop install ffmpeg
 
 ```
 Once `FFmpeg` is installed clone this repository and run
-```
-```
 
 ``` 
 uv sync
